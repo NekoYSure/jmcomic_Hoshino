@@ -88,9 +88,62 @@ def remove_expired_config_api_domain(option):
         domain_config['api'] = available_domains
 
 
+def remove_expired_config_api_domain_from_dict(config):
+    client_config = config.get('client')
+    if not isinstance(client_config, dict):
+        return
+
+    domain_config = client_config.get('domain')
+    if not isinstance(domain_config, dict):
+        return
+
+    api_domains = domain_config.get('api')
+    if api_domains is None:
+        return
+    if isinstance(api_domains, str):
+        api_domains = [api_domains]
+
+    available_domains = [d for d in api_domains if not is_expired_api_domain(d)]
+    if len(available_domains) != len(api_domains):
+        domain_config['api'] = available_domains
+
+
+def remove_unregistered_plugins_from_dict(config):
+    module_config = getattr(jmcomic, 'JmModuleConfig', None)
+    plugin_registry = getattr(module_config, 'REGISTRY_PLUGIN', None)
+    if not isinstance(plugin_registry, dict):
+        return
+
+    plugins = config.get('plugins') or config.get('plugin')
+    if not isinstance(plugins, dict):
+        return
+
+    for group, plugin_list in plugins.items():
+        if not isinstance(plugin_list, list):
+            continue
+
+        available_plugins = []
+        for plugin_info in plugin_list:
+            plugin_key = plugin_info.get('plugin') if isinstance(plugin_info, dict) else None
+            if plugin_key is not None and plugin_key not in plugin_registry:
+                print(f"jmcomic plugin [{plugin_key}] is not registered, skipped.")
+                continue
+
+            available_plugins.append(plugin_info)
+
+        plugins[group] = available_plugins
+
+
 def create_jmcomic_option():
     configure_jmcomic_api()
-    option = jmcomic.JmOption.from_file(config_path)
+    with open(config_path, 'r', encoding='utf-8') as file:
+        config = yaml.safe_load(file)
+
+    remove_expired_config_api_domain_from_dict(config)
+    remove_unregistered_plugins_from_dict(config)
+    config.setdefault('filepath', config_path)
+
+    option = jmcomic.JmOption.construct(config)
     remove_expired_config_api_domain(option)
     return option
 
