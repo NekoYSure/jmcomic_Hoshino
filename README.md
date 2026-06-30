@@ -7,7 +7,7 @@
 需要Python3.9+
 
 ## 安装方法
-1. 在module目录下克隆本仓库 `git clone https://github.com/SlightDust/jmcomic_HoshinoBot.git`
+1. 在module目录下克隆本仓库 `git clone https://github.com/NekoYSure/jmcomic_Hoshino.git`
 2. 下载依赖 `pip install -U "jmcomic>=2.7.0" PyPDF2 img2pdf pyzipper pyyaml`  
 3. 复制`jm_config_example.yml`到`jm_config.yml`
 4. 在`__bot__.py`的`module`中添加`jmcomic_HoshinoBot`
