@@ -1,0 +1,5 @@
+jmcomic>=2.7.0
+PyPDF2
+img2pdf
+pyzipper
+pyyaml

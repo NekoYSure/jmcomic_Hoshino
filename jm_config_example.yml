@@ -1,0 +1,50 @@
+version: '2.1'
+
+dir_rule:
+  base_dir: /root/18comic_down/books
+  rule: Bd_Aid_Pindex
+
+client:
+  impl: api
+  retry_times: 5
+  domain:
+    html:
+      - 18comic.vip
+      - 18comic.org
+#    api:
+#      - 留空/删除 api 域名，让 jmcomic 自动从 newsvr-2025.txt 获取最新 API 域名
+#  postman:
+#    meta_data:
+#      timeout: 20
+#      proxies: 127.0.0.1:7890
+
+
+download:
+  cache: true # 如果要下载的文件在磁盘上已存在，不用再下一遍了吧？
+  image:
+    decode: true # JM的原图是混淆过的，要不要还原？
+    suffix: .jpg # 把图片都转为.jpg格式
+  threading:
+    # image: 每个章节的图片下载线程数
+    # 数值大，下得快，配置要求高，对禁漫压力大
+    # 数值小，下得慢，配置要求低，对禁漫压力小
+    # PS: 禁漫网页一般是一次请求50张图
+    image: 10
+plugins:
+  after_init:
+    - plugin: client_proxy
+      kwargs:
+        proxy_client_key: photo_concurrent_fetcher_proxy
+        whitelist: [ api, ]
+
+    - plugin: advanced_retry
+      kwargs:
+        retry_config:
+          retry_rounds: 3
+          retry_domain_max_times: 5
+
+  after_album:
+    - plugin: img2pdf
+      kwargs:
+        pdf_dir: /root/18comic_down/ # pdf存放文件夹
+        filename_rule: Aid # Aname # pdf命名规则，A代表album, name代表使用album.name也就是本子名称
